@@ -1,6 +1,7 @@
 package iDlogger
 
 import (
+	"fmt"
 	"os"
 	"sync"
 	"time"
@@ -97,26 +98,26 @@ func (l *Logger) Log(e *Event) {
 	}
 }
 
-func (l *Logger) Debug(entry string) {
-	l.Log(&Event{l, map[string]interface{}{}, time.Now(), DebugLevel, entry})
+func (l *Logger) Debug(entry ...interface{}) {
+	l.Log(&Event{l, map[string]interface{}{}, time.Now(), DebugLevel, fmt.Sprint(entry...)})
 }
 
-func (l *Logger) Info(entry string) {
-	l.Log(&Event{l, map[string]interface{}{}, time.Now(), InfoLevel, entry})
+func (l *Logger) Info(entry ...interface{}) {
+	l.Log(&Event{l, map[string]interface{}{}, time.Now(), InfoLevel, fmt.Sprint(entry...)})
 }
 
-func (l *Logger) Warn(entry string) {
-	l.Log(&Event{l, map[string]interface{}{}, time.Now(), WarnLevel, entry})
+func (l *Logger) Warn(entry ...interface{}) {
+	l.Log(&Event{l, map[string]interface{}{}, time.Now(), WarnLevel, fmt.Sprint(entry...)})
 }
 
-func (l *Logger) Error(entry string) {
-	l.Log(&Event{l, map[string]interface{}{}, time.Now(), ErrorLevel, entry})
+func (l *Logger) Error(entry ...interface{}) {
+	l.Log(&Event{l, map[string]interface{}{}, time.Now(), ErrorLevel, fmt.Sprint(entry...)})
 }
 
-func (l *Logger) Fatal(entry string) {
-	l.Log(&Event{l, map[string]interface{}{}, time.Now(), FatalLevel, entry})
+func (l *Logger) Fatal(entry ...interface{}) {
+	l.Log(&Event{l, map[string]interface{}{}, time.Now(), FatalLevel, fmt.Sprint(entry...)})
 }
 
-func (l *Logger) Panic(entry string) {
-	l.Log(&Event{l, map[string]interface{}{}, time.Now(), PanicLevel, entry})
+func (l *Logger) Panic(entry ...interface{}) {
+	l.Log(&Event{l, map[string]interface{}{}, time.Now(), PanicLevel, fmt.Sprint(entry...)})
 }
