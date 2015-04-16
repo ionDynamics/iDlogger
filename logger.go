@@ -115,9 +115,13 @@ func (l *Logger) Error(entry ...interface{}) {
 }
 
 func (l *Logger) Fatal(entry ...interface{}) {
+	l.Async = false
 	l.Log(&Event{l, map[string]interface{}{}, time.Now(), FatalLevel, fmt.Sprint(entry...)})
+	os.Exit(1)
 }
 
 func (l *Logger) Panic(entry ...interface{}) {
+	l.Async = false
 	l.Log(&Event{l, map[string]interface{}{}, time.Now(), PanicLevel, fmt.Sprint(entry...)})
+	panic(fmt.Sprint(entry...))
 }
