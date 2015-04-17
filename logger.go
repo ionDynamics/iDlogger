@@ -10,6 +10,7 @@ import (
 type Logger struct {
 	Async       bool
 	mu          sync.RWMutex
+	wg          sync.WaitGroup
 	prefix      string
 	flag        uint8
 	errCallback func(error)
@@ -42,6 +43,7 @@ func New() *Logger {
 	log := &Logger{
 		false,
 		sync.RWMutex{},
+		sync.WaitGroup{},
 		"",
 		0,
 		nil,
@@ -71,6 +73,11 @@ func (l *Logger) dispatch(e *Event) {
 			l.errCallback(err)
 		}
 	}
+	l.wg.Done()
+}
+
+func (l *Logger) Wait() {
+	l.wg.Wait()
 }
 
 func (l *Logger) SetPrefix(prefix string) {
@@ -91,10 +98,12 @@ func (l *Logger) AddHook(h Hook) {
 }
 
 func (l *Logger) Log(e *Event) {
+	l.wg.Add(1)
 	if l.Async {
 		go l.dispatch(e)
 	} else {
 		l.dispatch(e)
+		l.wg.Wait()
 	}
 }
 
@@ -115,13 +124,13 @@ func (l *Logger) Error(entry ...interface{}) {
 }
 
 func (l *Logger) Fatal(entry ...interface{}) {
-	l.Async = false
 	l.Log(&Event{l, map[string]interface{}{}, time.Now(), FatalLevel, fmt.Sprint(entry...)})
+	l.Wait()
 	os.Exit(1)
 }
 
 func (l *Logger) Panic(entry ...interface{}) {
-	l.Async = false
 	l.Log(&Event{l, map[string]interface{}{}, time.Now(), PanicLevel, fmt.Sprint(entry...)})
+	l.Wait()
 	panic(fmt.Sprint(entry...))
 }
