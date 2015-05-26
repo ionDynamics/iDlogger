@@ -16,7 +16,7 @@ func (sf *StdFormatter) Format(e *Event) (*[]byte, error) {
 	if len(e.Logger.prefix) > 0 {
 		buf = append(buf, []byte("["+e.Logger.prefix+"]")...)
 	}
-	buf = append(buf, []byte("["+e.Level.String()+"]["+e.Time.Format("2006-01-02 15:04:05")+"]\t"+e.Message)...)
+	buf = append(buf, []byte("["+e.Priority.String()+"]["+e.Time.Format("2006-01-02 15:04:05")+"]\t"+e.Message)...)
 	i := 1
 	for k, v := range e.Data {
 		if i == 1 && e.Message == "" {

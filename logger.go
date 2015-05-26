@@ -5,16 +5,18 @@ import (
 	"os"
 	"sync"
 	"time"
+
+	"go.iondynamics.net/iDlogger/priority"
 )
 
 type Logger struct {
-	Async       bool
-	mu          sync.RWMutex
-	wg          sync.WaitGroup
-	prefix      string
-	flag        uint8
-	errCallback func(error)
-	levelHooks  map[Level][]Hook
+	Async         bool
+	mu            sync.RWMutex
+	wg            sync.WaitGroup
+	prefix        string
+	flag          uint8
+	errCallback   func(error)
+	priorityHooks map[priority.Priority][]Hook
 }
 
 func New() *Logger {
@@ -28,17 +30,13 @@ func New() *Logger {
 	stdOut.SetWriter(os.Stdout)
 	stdErr.SetWriter(os.Stderr)
 
-	stdOut.SetLevels([]Level{
-		DebugLevel,
-		InfoLevel,
-		WarnLevel,
+	stdOut.SetPriorities([]priority.Priority{
+		priority.Debugging,
+		priority.Informational,
+		priority.Notice,
 	})
 
-	stdErr.SetLevels([]Level{
-		ErrorLevel,
-		FatalLevel,
-		PanicLevel,
-	})
+	stdErr.SetPriorities(priority.Threshold(priority.Warning))
 
 	log := &Logger{
 		false,
@@ -47,13 +45,15 @@ func New() *Logger {
 		"",
 		0,
 		nil,
-		map[Level][]Hook{
-			PanicLevel: []Hook{},
-			FatalLevel: []Hook{},
-			ErrorLevel: []Hook{},
-			WarnLevel:  []Hook{},
-			InfoLevel:  []Hook{},
-			DebugLevel: []Hook{},
+		map[priority.Priority][]Hook{
+			priority.Emergency:     []Hook{},
+			priority.Alert:         []Hook{},
+			priority.Critical:      []Hook{},
+			priority.Error:         []Hook{},
+			priority.Warning:       []Hook{},
+			priority.Notice:        []Hook{},
+			priority.Informational: []Hook{},
+			priority.Debugging:     []Hook{},
 		},
 	}
 
@@ -67,7 +67,7 @@ func (l *Logger) dispatch(e *Event) {
 	l.mu.RLock()
 	defer l.mu.RUnlock()
 
-	for _, h := range l.levelHooks[e.Level] {
+	for _, h := range l.priorityHooks[e.Priority] {
 		err := h.Fire(e)
 		if err != nil && l.errCallback != nil {
 			l.errCallback(err)
@@ -92,8 +92,8 @@ func (l *Logger) AddHook(h Hook) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 
-	for _, lvl := range h.Levels() {
-		l.levelHooks[lvl] = append(l.levelHooks[lvl], h)
+	for _, prio := range h.Priorities() {
+		l.priorityHooks[prio] = append(l.priorityHooks[prio], h)
 	}
 }
 
@@ -108,29 +108,41 @@ func (l *Logger) Log(e *Event) {
 }
 
 func (l *Logger) Debug(entry ...interface{}) {
-	l.Log(&Event{l, map[string]interface{}{}, time.Now(), DebugLevel, fmt.Sprint(entry...)})
+	l.Log(&Event{l, map[string]interface{}{}, time.Now(), priority.Debugging, fmt.Sprint(entry...)})
 }
 
 func (l *Logger) Info(entry ...interface{}) {
-	l.Log(&Event{l, map[string]interface{}{}, time.Now(), InfoLevel, fmt.Sprint(entry...)})
+	l.Log(&Event{l, map[string]interface{}{}, time.Now(), priority.Informational, fmt.Sprint(entry...)})
+}
+
+func (l *Logger) Notice(entry ...interface{}) {
+	l.Log(&Event{l, map[string]interface{}{}, time.Now(), priority.Notice, fmt.Sprint(entry...)})
 }
 
 func (l *Logger) Warn(entry ...interface{}) {
-	l.Log(&Event{l, map[string]interface{}{}, time.Now(), WarnLevel, fmt.Sprint(entry...)})
+	l.Log(&Event{l, map[string]interface{}{}, time.Now(), priority.Warning, fmt.Sprint(entry...)})
 }
 
-func (l *Logger) Error(entry ...interface{}) {
-	l.Log(&Event{l, map[string]interface{}{}, time.Now(), ErrorLevel, fmt.Sprint(entry...)})
+func (l *Logger) Err(entry ...interface{}) {
+	l.Log(&Event{l, map[string]interface{}{}, time.Now(), priority.Error, fmt.Sprint(entry...)})
 }
 
-func (l *Logger) Fatal(entry ...interface{}) {
-	l.Log(&Event{l, map[string]interface{}{}, time.Now(), FatalLevel, fmt.Sprint(entry...)})
+func (l *Logger) Crit(entry ...interface{}) {
+	l.Log(&Event{l, map[string]interface{}{}, time.Now(), priority.Critical, fmt.Sprint(entry...)})
+}
+
+func (l *Logger) Alert(entry ...interface{}) {
+	l.Log(&Event{l, map[string]interface{}{}, time.Now(), priority.Alert, fmt.Sprint(entry...)})
+}
+
+func (l *Logger) Emerg(entry ...interface{}) {
+	l.Log(&Event{l, map[string]interface{}{}, time.Now(), priority.Emergency, fmt.Sprint(entry...)})
 	l.Wait()
 	os.Exit(1)
 }
 
 func (l *Logger) Panic(entry ...interface{}) {
-	l.Log(&Event{l, map[string]interface{}{}, time.Now(), PanicLevel, fmt.Sprint(entry...)})
+	l.Log(&Event{l, map[string]interface{}{}, time.Now(), priority.Emergency, fmt.Sprint(entry...)})
 	l.Wait()
 	panic(fmt.Sprint(entry...))
 }

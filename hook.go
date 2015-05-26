@@ -2,15 +2,17 @@ package iDlogger
 
 import (
 	"io"
+
+	"go.iondynamics.net/iDlogger/priority"
 )
 
 type Hook interface {
-	Levels() []Level
+	Priorities() []priority.Priority
 	Fire(*Event) error
 }
 
 type StdHook struct {
-	l []Level
+	p []priority.Priority
 	w io.Writer
 	f Formatter
 }
@@ -23,12 +25,12 @@ func (sh *StdHook) Fire(e *Event) error {
 	return err
 }
 
-func (sh *StdHook) Levels() []Level {
-	return sh.l
+func (sh *StdHook) Priorities() []priority.Priority {
+	return sh.p
 }
 
-func (sh *StdHook) SetLevels(l []Level) {
-	sh.l = l
+func (sh *StdHook) SetPriorities(p []priority.Priority) {
+	sh.p = p
 }
 
 func (sh *StdHook) SetWriter(w io.Writer) {
