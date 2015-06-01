@@ -47,38 +47,33 @@ func (priority Priority) String() string {
 func Atos(a string) Priority {
 	switch strings.ToLower(strings.TrimSpace(a)) {
 
-	case "emerg":
-	case "emergency":
+	case "emerg", "emergency":
 		return Emergency
 
 	case "alert":
 		return Alert
 
-	case "critical":
-	case "crit":
+	case "crit", "critical":
 		return Critical
 
-	case "error":
-	case "err":
+	case "err", "error":
 		return Error
 
-	case "warning":
-	case "warn":
+	case "warn", "warning":
 		return Warning
 
 	case "notice":
 		return Notice
 
-	case "informational":
-	case "info":
+	case "info", "informational":
 		return Informational
 
-	case "debugging":
-	case "debug":
+	case "debug", "debugging":
 		return Debugging
 	}
 
 	return Invalid
+
 }
 
 var allPriorities = []Priority{
