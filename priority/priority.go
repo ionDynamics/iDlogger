@@ -7,6 +7,10 @@ import (
 type Priority uint8
 
 const (
+	Invalid Priority = Priority(^uint8(0)) //Maximum of uint8
+)
+
+const (
 	Emergency Priority = iota
 	Alert
 	Critical
@@ -15,10 +19,6 @@ const (
 	Notice
 	Informational
 	Debugging
-)
-
-const (
-	Invalid Priority = Priority(^uint8(0)) //Maximum of uint8
 )
 
 func (priority Priority) String() string {
