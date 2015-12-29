@@ -1,4 +1,4 @@
-package iDlogger
+package iDlogger //import "go.iondynamics.net/iDlogger"
 
 import (
 	"go.iondynamics.net/iDlogger/priority"
