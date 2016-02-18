@@ -20,6 +20,10 @@ type Logger struct {
 }
 
 func New() *Logger {
+	return WithDebug(true)
+}
+
+func WithDebug(debug bool) *Logger {
 	var sf *StdFormatter
 	stdOut := new(StdHook)
 	stdErr := new(StdHook)
@@ -30,22 +34,25 @@ func New() *Logger {
 	stdOut.SetWriter(os.Stdout)
 	stdErr.SetWriter(os.Stderr)
 
-	stdOut.SetPriorities([]priority.Priority{
-		priority.Debugging,
-		priority.Informational,
-		priority.Notice,
-	})
+	if debug {
+		stdOut.SetPriorities([]priority.Priority{
+			priority.Debugging,
+			priority.Informational,
+			priority.Notice,
+		})
+	} else {
+		stdOut.SetPriorities([]priority.Priority{
+			priority.Informational,
+			priority.Notice,
+		})
+	}
 
 	stdErr.SetPriorities(priority.Threshold(priority.Warning))
 
 	log := &Logger{
-		false,
-		sync.RWMutex{},
-		sync.WaitGroup{},
-		"",
-		0,
-		nil,
-		map[priority.Priority][]Hook{
+		Async:  false,
+		prefix: "",
+		priorityHooks: map[priority.Priority][]Hook{
 			priority.Emergency:     []Hook{},
 			priority.Alert:         []Hook{},
 			priority.Critical:      []Hook{},
